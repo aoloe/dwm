@@ -29,6 +29,7 @@ static const Rule rules[] = {
 	/* class      instance    title       tags mask     isfloating   monitor */
 	{ "Gimp",     NULL,       NULL,       0,            1,           -1 },
 	{ "Claws-mail",     NULL,       NULL,       0,            1,           -1 },
+	/* { "claws-mail", NULL,       NULL,       1 << 2,     False,      -1 }, https://github.com/davidbecker/dwm/blob/master/config.h */
 };
 
 /* layout(s) */
