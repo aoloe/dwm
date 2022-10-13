@@ -4,7 +4,7 @@ VERSION = 6.4
 # Customize below to fit your system
 
 # paths
-PREFIX = /home/ale/bin/dwm
+PREFIX = /home/ale/bin/suckless-dwm
 MANPREFIX = ${PREFIX}/share/man
 
 X11INC = /usr/X11R6/include
