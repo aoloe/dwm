@@ -281,6 +281,8 @@ struct Pertag {
 	unsigned int sellts[LENGTH(tags) + 1]; /* selected layouts */
 	const Layout *ltidxs[LENGTH(tags) + 1][2]; /* matrix of tags and layouts indexes  */
 	int showbars[LENGTH(tags) + 1]; /* display bar for the current tag */
+	int cursx[LENGTH(tags) + 1]; /* cursor position when inactive  */
+	int cursy[LENGTH(tags) + 1];
 };
 
 /* compile-time check if all tags fit into an unsigned int bit array. */
@@ -669,6 +671,8 @@ createmon(void)
 		m->pertag->sellts[i] = m->sellt;
 
 		m->pertag->showbars[i] = m->showbar;
+        m->pertag->cursx[i] = -1;
+        m->pertag->cursy[i] = -1;
 	}
 
 	return m;
@@ -852,12 +856,21 @@ void
 focusmon(const Arg *arg)
 {
 	Monitor *m;
+    int x, y;
 
 	if (!mons->next)
 		return;
 	if ((m = dirtomon(arg->i)) == selmon)
 		return;
+	if (getrootptr(&x, &y)) {
+        selmon->pertag->cursx[selmon->pertag->curtag] = x;
+        selmon->pertag->cursy[selmon->pertag->curtag] = y;
+    }
 	unfocus(selmon->sel, 0);
+    // TODO: what to do if there is no current value? {-1, -1}
+    x = m->pertag->cursx[m->pertag->curtag] - m->mx;
+    y = m->pertag->cursy[m->pertag->curtag] - m->my;
+    XWarpPointer(dpy, None, m->barwin, 0, 0, 0, 0, x, y);
 	selmon = m;
 	focus(NULL);
 }
@@ -2086,6 +2099,7 @@ void
 view(const Arg *arg)
 {
 	int i;
+    int x, y;
 	unsigned int tmptag;
 
 	if ((arg->ui & TAGMASK) == selmon->tagset[selmon->seltags])
@@ -2095,13 +2109,28 @@ view(const Arg *arg)
 		selmon->tagset[selmon->seltags] = arg->ui & TAGMASK;
 		selmon->pertag->prevtag = selmon->pertag->curtag;
 
+        if (getrootptr(&x, &y)) {
+            selmon->pertag->cursx[selmon->pertag->prevtag] = x;
+            selmon->pertag->cursy[selmon->pertag->prevtag] = y;
+        }
+
 		if (arg->ui == ~0)
 			selmon->pertag->curtag = 0;
 		else {
 			for (i = 0; !(arg->ui & 1 << i); i++) ;
 			selmon->pertag->curtag = i + 1;
+            if (selmon->pertag->cursx[selmon->pertag->curtag] == -1) {
+                x = selmon->mw / 2;
+                y = selmon->mh / 2;
+            } else {
+                x = selmon->pertag->cursx[selmon->pertag->curtag] - selmon->mx;
+                y = selmon->pertag->cursy[selmon->pertag->curtag] - selmon->my;
+            }
+
+            XWarpPointer(dpy, None, selmon->barwin, 0, 0, 0, 0, x, y);
 		}
 	} else {
+        // TODO: what is this branch? what do we need to do?
 		tmptag = selmon->pertag->prevtag;
 		selmon->pertag->prevtag = selmon->pertag->curtag;
 		selmon->pertag->curtag = tmptag;
