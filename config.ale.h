@@ -13,10 +13,16 @@ static const char col_gray2[]       = "#444444";
 static const char col_gray3[]       = "#bbbbbb";
 static const char col_gray4[]       = "#eeeeee";
 static const char col_cyan[]        = "#005577";
+static const char col_black[]       = "#000000";
+static const char col_red[]         = "#ff0000";
+static const char col_yellow[]      = "#ffff00";
+static const char col_white[]       = "#ffffff";
 static const char *colors[][3]      = {
 	/*               fg         bg         border   */
 	[SchemeNorm] = { col_gray3, col_gray1, col_gray2 },
 	[SchemeSel]  = { col_gray4, col_cyan,  col_cyan  },
+	[SchemeWarn] =	 { col_black, col_yellow, col_red },
+	[SchemeUrgent]=	 { col_white, col_red,    col_red },
 };
 
 /* tagging */
@@ -51,6 +57,15 @@ static const Layout layouts[] = {
 
 /* key definitions */
 #define MODKEY Mod4Mask /* use the win key */
+
+/* from <X11/XF86keysym.h> */
+#define XF86AudioMute 0x1008ff12
+#define XF86AudioLowerVolume 0x1008ff11
+#define XF86AudioRaiseVolume 0x1008ff13
+#define XF86MonBrightnessDown 0x1008ff03
+#define XF86MonBrightnessUp 0x1008ff02
+#define XF86AudioMicMute 0x1008ffb2
+
 #define TAGKEYS(KEY,TAG) \
 	{ MODKEY,                       KEY,      view,           {.ui = 1 << TAG} }, \
 	{ MODKEY|ControlMask,           KEY,      toggleview,     {.ui = 1 << TAG} }, \
@@ -63,6 +78,12 @@ static const Layout layouts[] = {
 /* commands */
 static const char *dmenucmd[] = { "dmenu_run", "-fn", dmenufont, "-nb", col_gray1, "-nf", col_gray3, "-sb", col_cyan, "-sf", col_gray4, NULL };
 static const char *termcmd[]  = { "st", NULL };
+static const char *cmdsoundup[]  = { "amixer", "-q", "sset", "Master", "5%+", NULL };
+static const char *cmdsounddown[]  = { "amixer", "-q", "sset", "Master", "5%-", NULL };
+static const char *cmdsoundtoggle[]  = { "amixer", "-q", "sset", "Master", "toggle", NULL };
+static const char *cmdbrightnessup[]  = { "ybacklight", "-inc", "10", NULL };
+static const char *cmdbrightnessdown[]  = { "ybacklight", "-dec", "10", NULL };
+static const char *cmdmictoggle[]  = { "amixer", "-q", "sset", "Capture", "toggle", NULL };
 
 static const Key keys[] = {
 	/* modifier                     key        function        argument */
@@ -89,6 +110,12 @@ static const Key keys[] = {
 	{ MODKEY,                       XK_period, focusmon,       {.i = +1 } },
 	{ MODKEY|ShiftMask,             XK_comma,  tagmon,         {.i = -1 } },
 	{ MODKEY|ShiftMask,             XK_period, tagmon,         {.i = +1 } },
+	{ 0,                            XF86AudioMute,             spawn,          {.v = cmdsoundtoggle } },
+	{ 0,                            XF86AudioRaiseVolume,      spawn,          {.v = cmdsoundup } },
+	{ 0,                            XF86AudioLowerVolume,      spawn,          {.v = cmdsounddown } },
+	{ 0,                            XF86MonBrightnessDown,     spawn,          {.v = cmdbrightnessdown } },
+	{ 0,                            XF86MonBrightnessUp,       spawn,          {.v = cmdbrightnessup } },
+	{ 0,                            XF86AudioMicMute,	       spawn,          {.v = cmdmictoggle } },
 	TAGKEYS(                        XK_1,                      0)
 	TAGKEYS(                        XK_2,                      1)
 	TAGKEYS(                        XK_3,                      2)
